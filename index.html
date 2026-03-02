@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>የኢትዮጵያ ሙዚቃ ፒያኖ - በቡዜ</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        const TRANSLATIONS = {
+            "am-ET": {
+                "appTitle": "የኢትዮጵያ ሙዚቃ ፒያኖ",
+                "songInputPlaceholder": "የዘፈን ስም ይጻፉ...",
+                "parseSongButton": "ዜማ አውጣ",
+                "processingButton": "በማዘጋጀት ላይ...",
+                "playButton": "አጫውት",
+                "stopButton": "አቁም",
+                "suggestionsTitle": "የታዋቂ አርቲስቶች ምርጫዎች"
+            },
+            "en-US": {
+                "appTitle": "Ethiopian Music Piano",
+                "songInputPlaceholder": "Type a song name...",
+                "parseSongButton": "Get Melody",
+                "processingButton": "Processing...",
+                "playButton": "Play",
+                "stopButton": "Stop",
+                "suggestionsTitle": "Popular Artist Suggestions"
+            }
+        };
+
+        const App = () => {
+            const [locale, setLocale] = useState("am-ET");
+            const t = (key) => TRANSLATIONS[locale][key];
+            const [songInput, setSongInput] = useState("");
+            const audioCtx = useRef(null);
+
+            const playNote = (freq) => {
+                if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.current.createOscillator();
+                const gain = audioCtx.current.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.current.destination);
+                osc.frequency.value = freq;
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.current.currentTime + 1);
+                osc.stop(audioCtx.current.currentTime + 1);
+            };
+
+            const suggestions = [
+                "ጥላሁን ገሰሰ - እምዬ ኢትዮጵያ", "ማህሙድ አህመድ - ተዘታ", 
+                "ቴዲ አፍሮ - ኢትዮጵያ", "አስቴር አወቀ - በዩ"
+            ];
+
+            return (
+                <div className="max-w-4xl mx-auto p-6 text-center">
+                    <div className="flex justify-end gap-2 mb-4">
+                        <button onClick={() => setLocale("am-ET")} className="text-sm font-bold">AM</button>
+                        <button onClick={() => setLocale("en-US")} className="text-sm font-bold">EN</button>
+                    </div>
+                    
+                    <h1 className="text-4xl font-bold mb-8 text-blue-800">{t("appTitle")}</h1>
+                    
+                    <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
+                        <input 
+                            type="text" 
+                            className="w-full p-3 border rounded mb-4" 
+                            placeholder={t("songInputPlaceholder")}
+                            value={songInput}
+                            onChange={(e) => setSongInput(e.target.value)}
+                        />
+                        <button className="bg-blue-600 text-white px-6 py-2 rounded font-bold hover:bg-blue-700 w-full">
+                            {t("parseSongButton")}
+                        </button>
+                    </div>
+
+                    <div className="flex justify-center gap-1 bg-gray-300 p-4 rounded-lg overflow-x-auto mb-8">
+                        {[261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25].map((f, i) => (
+                            <button key={i} onClick={() => playNote(f)} className="w-12 h-48 bg-white border border-gray-400 rounded-b-lg active:bg-gray-200 shadow-md">
+                                {["ዶ", "ሬ", "ሚ", "ፋ", "ሶ", "ላ", "ሲ", "ዶ"][i]}
+                            </button>
+                        ))}
+                    </div>
+
+                    <h2 className="text-xl font-bold mb-4">{t("suggestionsTitle")}</h2>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {suggestions.map((s, i) => (
+                            <button key={i} onClick={() => setSongInput(s)} className="bg-gray-200 px-4 py-2 rounded-full text-sm hover:bg-gray-300">
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
